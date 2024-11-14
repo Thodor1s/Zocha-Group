@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  frontend:
+    container_name: frontend_Zocha_Group
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - '3001:80'
+    depends_on:
+      - backend
+
+  backend:
+    container_name: backend_Zocha_Group
+    restart: always
+    build: .
+    ports:
+      - '3000:3000'
+    depends_on:
+      - postgres_db
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+
+  postgres_db:
+    container_name: postgres_db
+    image: postgres
+    ports:
+      - '5433:${DB_PORT}'
+    volumes:
+      - data:/data/db
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+
+volumes:
+  data: {}
