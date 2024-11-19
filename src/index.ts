@@ -1,11 +1,12 @@
-import express, { Application, Request, Response } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import http from 'http';
 import cors from 'cors';
 import cron from 'node-cron';
 import axios from 'axios';
 import { db } from './utils/db';
-import ReservationRouter from './routes/reservations'
+import ReservationRouter from './routes/reservations';
+import { getDayOfYear } from './utils/dates'; // Import the utility function
 
 dotenv.config();
 
@@ -20,12 +21,13 @@ app.use(express.json());
 // Routes
 app.use('/', ReservationRouter);
 
-// Error handling
-app.use((req: Request, res: Response, next) => {
+// Error handling for 404
+app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({ error: 'Not Found' });
 });
 
-app.use((err: any, req: Request, res: Response, next: any) => {
+// General error handling
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error(err);
   res.status(500).json({ error: 'Internal Server Error' });
 });
@@ -43,10 +45,12 @@ db.authenticate()
     console.error('Error connecting to the database:', error);
   });
 
-// Cron job to fetch reservations every minute
 cron.schedule('* * * * *', async () => {
+  const today = new Date();
+  //const currentDayOfYear = getDayOfYear(today);
+
   try {
-    await axios.get('http://localhost:3000/fetch-reservations');
+    await axios.get('http://localhost:3000/fetch-daily-reservations');
     console.log('Reservations fetched and updated');
   } catch (error) {
     console.error('Error fetching reservations:', error);
