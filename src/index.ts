@@ -4,7 +4,7 @@ import http from 'http';
 import cors from 'cors';
 import cron from 'node-cron';
 import axios from 'axios';
-import { db } from './utils/db';
+import { connectDB } from './utils/db';
 import ReservationRouter from './routes/reservations';
 import { getDayOfYear } from './utils/dates'; // Import the utility function
 
@@ -32,23 +32,11 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// Check DB connection and sync models
-db.authenticate()
-  .then(() => {
-    console.log('Database connection established successfully');
-    return db.sync(); // Sync models with the database
-  })
-  .then(() => {
-    console.log('SQL connected and models synced');
-  })
-  .catch((error: any) => {
-    console.error('Error connecting to the database:', error);
-  });
+connectDB();
 
 cron.schedule('* * * * *', async () => {
   const today = new Date();
   //const currentDayOfYear = getDayOfYear(today);
-
   try {
     await axios.get('http://localhost:3000/fetch-daily-reservations');
     console.log('Reservations fetched and updated');

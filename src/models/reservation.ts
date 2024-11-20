@@ -1,36 +1,72 @@
-import { DataTypes } from 'sequelize';
-import { db } from '../utils/db';
+import mongoose, { Schema, Document } from 'mongoose';
 
-export const Reservation = db.define('Reservation', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
+interface Header {
+  modifier: string;
+  name: string;
+  type: string;
+}
+
+interface Col {
+  header: Header;
+  value: string | number | boolean | null;
+}
+
+interface Row {
+  cols: Col[];
+}
+
+interface ReservationData {
+  headers: Header[];
+  rows: Row[];
+}
+
+export interface IReservation extends Document {
+  config: {
+    description: string | null;
+    name: string;
+    period: string;
+    ui_type: string;
+  };
+  data: ReservationData;
+}
+
+const ReservationSchema: Schema = new Schema(
+  {
+    dayOfYear: { type: Number, required: true, unique: true },
+    config: {
+      description: { type: String, default: null },
+      name: { type: String, required: true },
+      period: { type: String, required: true },
+      ui_type: { type: String, required: true },
+    },
+    data: {
+      headers: [
+        {
+          modifier: { type: String, required: true },
+          name: { type: String, required: true },
+          type: { type: String, required: true },
+        },
+      ],
+      rows: [
+        {
+          cols: [
+            {
+              header: {
+                modifier: { type: String, required: true },
+                name: { type: String, required: true },
+                type: { type: String, required: true },
+              },
+              value: { type: Schema.Types.Mixed },
+            },
+          ],
+        },
+      ],
+    },
   },
-  guest_name: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-  },
-  party_size: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-  },
-  tags: {
-    type: DataTypes.ARRAY(DataTypes.TEXT),
-    allowNull: true,
-  },
-  date_and_time: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-    allowNull: true,
-  },
-  seating_area: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-  },
-  status: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-    allowNull: true,
-  },
-});
+  { timestamps: true }
+);
+
+export const Reservation = mongoose.model<IReservation>(
+  'Reservation',
+  ReservationSchema
+);

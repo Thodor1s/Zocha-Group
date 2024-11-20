@@ -1,7 +1,7 @@
-// routes/reservations.ts
 import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import { getDayOfYear } from '../../utils/dates';
+import { Reservation } from '../../models/reservation';
 
 const router = Router();
 
@@ -9,12 +9,11 @@ router.get('/fetch-daily-reservations', async (req: Request, res: Response) => {
   try {
     const today = new Date();
     const year = today.getFullYear();
-    const dayofyear = getDayOfYear(today);
-
+    const dayOfYear = getDayOfYear(today);
     const payload = {
-      struct_binds: JSON.stringify({ year, dayofyear }),
+      struct_binds: JSON.stringify({ year, dayofyear: dayOfYear }),
     };
-
+    //Reversed Engineered from the /reservation call of the RESY OS api as required
     const response = await axios.post(
       'https://api.resy.com/3/analytics/report/core/Reservations',
       payload,
@@ -26,13 +25,17 @@ router.get('/fetch-daily-reservations', async (req: Request, res: Response) => {
         },
       }
     );
-
     const reservations = response.data;
+    const upsertedReservation = await Reservation.findOneAndUpdate(
+      { dayOfYear },
+      { data: reservations[0].data, dayOfYear },
+      { upsert: true, new: true }
+    );
 
-    // Print reservations to the console
-    console.log(reservations);
-
-    res.json({ message: 'Reservations fetched successfully', reservations });
+    res.json({
+      message: 'Reservation fetched and upserted successfully',
+      reservation: upsertedReservation,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
