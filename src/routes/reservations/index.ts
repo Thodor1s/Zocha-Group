@@ -5,7 +5,7 @@ import { Reservation } from '../../models/reservation';
 
 const router = Router();
 
-router.get('/fetch-daily-reservations', async (req: Request, res: Response) => {
+router.get('/update-reservations', async (req: Request, res: Response) => {
   try {
     const today = new Date();
     const year = today.getFullYear();
@@ -13,7 +13,7 @@ router.get('/fetch-daily-reservations', async (req: Request, res: Response) => {
     const payload = {
       struct_binds: JSON.stringify({ year, dayofyear: dayOfYear }),
     };
-    //Reversed Engineered from the /reservation call of the RESY OS api as required
+    // Reversed Engineered from the /reservation call of the RESY OS api as required
     const response = await axios.post(
       'https://api.resy.com/3/analytics/report/core/Reservations',
       payload,
@@ -32,6 +32,8 @@ router.get('/fetch-daily-reservations', async (req: Request, res: Response) => {
       { upsert: true, new: true }
     );
 
+    const io = req.app.get('socketio');
+    io.emit('reservationUpdate', upsertedReservation);
     res.json({
       message: 'Reservation fetched and upserted successfully',
       reservation: upsertedReservation,
