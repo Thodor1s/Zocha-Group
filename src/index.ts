@@ -36,15 +36,35 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 // Connection to the Database
 connectDB();
 
-// Cron job for reservation updating
-cron.schedule('* * * * *', async () => {
+const fetchAndUpdateReservations = async () => {
   try {
     await axios.get('http://localhost:3000/update-reservations');
     console.log('Reservations fetched and updated');
   } catch (error) {
     console.error('Error fetching reservations:', error);
   }
-});
+};
+
+/* * * * * 
+  THis is a cronjob that triggers the fetching of the data every minute.
+  By dynamically changing the time between triggers, we could utilize 
+  adaptive polling to potentially reduce the number of calls to the RESY 
+  backend. We could for example increase the time between polling
+  if there are no changes, poll only at certain hours of the day,
+  or poll at random.
+
+  Since our very own frontend doesn't need to poll the RESY api, but gets
+  the data from Mongo, we can use any or all adaptive polling strategies, 
+  For a live restaurant reservation system like what I figured you had in
+  mind, polling more when the restaurant is open, or when reservations are
+  more likely to come in (by utilizing some business logic I am not aware of)
+  is a valid strategy.
+* * * * */
+
+cron.schedule('* * * * *', fetchAndUpdateReservations);
+
+// Fetch and update reservations immediately upon server start
+fetchAndUpdateReservations();
 
 //Socket for frontend to get updates
 io.on('connection', (socket) => {
