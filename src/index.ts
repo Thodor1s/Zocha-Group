@@ -7,6 +7,15 @@ import axios from 'axios';
 import { connectDB } from './utils/db';
 import ReservationRouter from './routes/reservations';
 import { Server } from 'socket.io';
+import {
+  log,
+  serverOn,
+  websocketOff,
+  websocketOn,
+  cronjob,
+  notFound,
+  failure,
+} from './utils/log';
 
 dotenv.config();
 const app: Application = express();
@@ -24,25 +33,23 @@ app.use('/', ReservationRouter);
 
 //404
 app.use((req: Request, res: Response, next: NextFunction) => {
-  res.status(404).json({ error: 'Not Found' });
+  log('General Error!', notFound, '', '');
+  res.status(404).json({ error: 'Not Found [404]' });
 });
 
 //500
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error(err);
-  res.status(500).json({ error: 'Internal Server Error' });
+  log('General Error!', failure, '', '');
+  res.status(500).json({ error: 'Internal Server Error [500]' });
 });
 
-// Connection to the Database
 connectDB();
 
 const fetchAndUpdateReservations = async () => {
+  log('It`s time to poll for reservations.', cronjob, '', '');
   try {
     await axios.get('http://localhost:3000/update-reservations');
-    console.log('Reservations fetched and updated');
-  } catch (error) {
-    console.error('Error fetching reservations:', error);
-  }
+  } catch (error) {}
 };
 
 /* * * * * 
@@ -63,19 +70,17 @@ const fetchAndUpdateReservations = async () => {
 
 cron.schedule('* * * * *', fetchAndUpdateReservations);
 
-// Fetch and update reservations immediately upon server start
 fetchAndUpdateReservations();
 
-//Socket for frontend to get updates
 io.on('connection', (socket) => {
-  console.log('Client connected');
+  log('', websocketOn, '', '');
   socket.on('disconnect', () => {
-    console.log('Client disconnected');
+    log('', websocketOff, '', '');
   });
 });
 
 app.set('socketio', io);
 
 server.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  log('', serverOn, '', `on port ${port}`);
 });

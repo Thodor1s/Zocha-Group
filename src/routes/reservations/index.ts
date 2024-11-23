@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import { getDayOfYear } from '../../utils/dates';
 import { Reservation } from '../../models/reservation';
+import { log, success, failure } from '../../utils/log';
 
 const router = Router();
 
@@ -57,13 +58,19 @@ router.get('/update-reservations', async (req: Request, res: Response) => {
 
     const io = req.app.get('socketio');
     io.emit('reservationUpdate', upsertedReservation);
+    log(
+      'GET /update-reservations',
+      success,
+      '',
+      `Fetched for day of year: ${dayOfYear}`
+    );
     res.json({
       message: 'Reservation fetched and upserted successfully',
       reservation: upsertedReservation,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    log('GET /update-reservations', failure, error, '');
+    res.status(500).json({ error: 'Internal Server Error [500]' });
   }
 });
 
@@ -72,10 +79,16 @@ router.get('/reservations', async (req: Request, res: Response) => {
     const today = new Date();
     const dayOfYear = getDayOfYear(today);
     const reservation = await Reservation.findOne({ dayOfYear });
+    log(
+      'GET /reservations',
+      success,
+      '',
+      `Sent to Frontend for day of year: ${dayOfYear}`
+    );
     res.json(reservation);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    log('GET /reservations', failure, error, '');
+    res.status(500).json({ error: 'Internal Server Error [500]' });
   }
 });
 

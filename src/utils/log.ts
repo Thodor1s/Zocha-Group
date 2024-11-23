@@ -1,7 +1,11 @@
-const newLog = 'newLog';
+const serverOn = 'serverOn'; //[SRV]
+
+const websocketOn = 'websocketOn'; //[WSO]
+const websocketOff = 'websocketOff'; //[WSX]
+
+const cronjob = 'cronjob' //[CRON]
 
 const success = 'success'; //[200]
-const multipleOptions = 'multipleOptions'; //[300]
 
 const validation = 'validation'; //[400?]
 const validRequest = 'validRequest'; //[!400]
@@ -11,6 +15,8 @@ const searching = 'searching'; //[404?]
 const found = 'found'; //[!404]
 const notFound = 'notFound'; //[404]
 
+const failure = 'failure'; //[500]
+
 const connection = 'connection'; //[500?]
 const connected = 'connected'; //[!500]
 const disconnected = 'disconnected'; //[500]
@@ -18,18 +24,16 @@ const disconnected = 'disconnected'; //[500]
 const queryError = 'queryError'; //[590]
 const greekTimeOptions = { timeZone: 'Europe/Athens' };
 
-//TODO add logs
-
 async function log(
-  endpoint : string, //in "POST /XXXX" from
-  type : string, //in "validation" form
-  data : any, // optional, when applicable
-  extraMsg : string // optional, when applicable
+  endpoint: string, //in "POST /XXXX" from
+  type: string, //in "validation" form
+  data: any, // optional, when applicable
+  extraMsg: string // optional, when applicable
 ) {
-  const Log = (msg : string) => {
+  const Log = (msg: string) => {
     console.log(
-      endpoint +
-        ' ' +
+      `[${new Date().toLocaleString('en-GB', greekTimeOptions)}] ` +
+        (endpoint ? endpoint + ' ' : '') +
         msg +
         (extraMsg ? extraMsg : '') +
         ' ' +
@@ -38,72 +42,57 @@ async function log(
   };
 
   switch (type) {
-    // For each new log in API usage, include date, time, and path (new line).
-    case newLog:
-      // console.log('');
-      console.log(
-        `-----[${new Date().toLocaleString(
-          'en-GB',
-          greekTimeOptions
-        )}] New request ${endpoint}`
-      );
+    // SRV
+    case serverOn:
+      Log('Server is up and running [SRV] ');
+      break;
+
+    // WSO WSX
+    case websocketOn:
+      Log('A Frontend connected [WSO] ');
+      break;
+    case websocketOff:
+      Log('A Frontend disconnected [WSX] ');
+      break;
+
+    // CRON
+    case cronjob:
+      Log('Polling... [CRON] ');
       break;
 
     // 200
     case success:
-      Log('Success [200]');
-      break;
-
-    // 300
-    case multipleOptions:
-      Log('Multiple Options [300]');
-      break;
-
-    // 400
-    case validation:
-      Log('Validating: ');
-      break;
-    case validRequest:
-      Log('The Request is Valid');
-      break;
-    case invalidRequest:
-      Log('The Request is Invalid [400]');
+      Log('Success [200] ');
       break;
 
     // 404
-    case searching:
-      Log('Searching for: ');
-      break;
-    case found:
-      Log('Found: ');
-      break;
     case notFound:
-      Log('Not Found [404]: ');
+      Log('Not Found [404] ');
       break;
 
     // 500
     case connection:
-      Log('Connecting to Database...');
+      Log('Connecting to Database... [DBC] ');
       break;
     case connected:
-      Log('Connected!');
+      Log('Connected! [DBO] ');
       break;
     case disconnected:
-      Log('Not Connected to Database :(');
+      Log('Could not connected to Database [500] ');
       break;
-
-    // 590
-    case queryError:
-      Log('Query error [590] : ');
+    case failure:
+      Log('Internal Server Error [500] ');
       break;
   }
 }
 
-module.exports = {
+export {
   log,
-  newLog,
+  serverOn,
+  websocketOn,
+  websocketOff,
+  cronjob,
   success,
-  multipleOptions,
   validation,
   validRequest,
   invalidRequest,
@@ -113,5 +102,6 @@ module.exports = {
   connection,
   connected,
   disconnected,
+  failure,
   queryError,
 };

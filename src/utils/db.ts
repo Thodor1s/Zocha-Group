@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { log, connection, connected, disconnected } from './log';
 
 dotenv.config();
 
@@ -10,15 +11,16 @@ if (!MONGO_URI) {
 }
 
 export const connectDB = async (): Promise<void> => {
+  log('Mongo DB', connection, '', '');
   try {
     await mongoose.connect(MONGO_URI, {
       // Fine-tuned options for logging
       autoIndex: false, // Avoid logging index creation in dev
       serverSelectionTimeoutMS: 5000, // Timeout for initial connection attempt
     });
-    console.log('Successfully connected to MongoDB');
+    log('Mongo DB', connected, '', '');
   } catch (error) {
-    console.error('Failed to connect to MongoDB:', error); // Only log essential error info
+    log('Mongo DB', disconnected, error, '');
     process.exit(1);
   }
 };
