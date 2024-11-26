@@ -1,7 +1,9 @@
 const serverOn = 'serverOn'; //[SRV]
 
+const websocketTrying = 'websocketTrying' ; //[WST]
 const websocketOn = 'websocketOn'; //[WSO]
 const websocketOff = 'websocketOff'; //[WSX]
+const websocketMessage = 'websocketMessage'; //[WSM]
 
 const cronjob = 'cronjob' //[CRON]
 
@@ -48,12 +50,19 @@ async function log(
       break;
 
     // WSO WSX
+    case websocketTrying:
+      Log('Attempting WebSocket connection... [WST] ');
+      break;
     case websocketOn:
-      Log('A Frontend connected [WSO] ');
+      Log('WebSocket connection opened. [WSO] ');
       break;
     case websocketOff:
-      Log('A Frontend disconnected [WSX] ');
+      Log('WebSocket connection closed. [WSX] ');
       break;
+    case websocketMessage:
+      Log('WebSocket received message! [WSM] ');
+      break;
+
 
     // CRON
     case cronjob:
@@ -89,8 +98,10 @@ async function log(
 export {
   log,
   serverOn,
+  websocketTrying,
   websocketOn,
   websocketOff,
+  websocketMessage,
   cronjob,
   success,
   validation,

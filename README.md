@@ -14,15 +14,18 @@ React.js (with Typescript) - Although a very minor app with no state manager and
 
 ## Assumptions
 
-1. I used the web version of Resy OS and probed into what it receives from the server. As far as I can make out, the /reservations call seems to be the only one that gets us there with the required details, and there doesn't seem to be an obvious way to reduce the number of polls and still get "up to minute" updates from the Resy backend. This solution demonstrates a basic websocket implementation, that takes the daily data from Resy every minute as required, but then serves that data to a frontend Live!
-   You can see more detailed notes about potential polling and live strategies on the code at:
-   src/index.ts:55
+1. I used the web version of Resy OS and probed into what it receives from the server. As far as I can make out, the /reservations call seems to be the only one that gets us there with the required details, and there doesn't seem to be an obvious way to reduce the number of polls and still get "up to minute" updates from the Resy backend. Even though a better version of the reservations
+   fetch exits on the mobile with time ranges, I kept this integration around for expediency.
+   **!NEW! By proxying the mobile app and listening to the networking, I found a websocket on Resy's side and implemented it to not poll via cronjob anymore. This app now is now entirely live updated and uses 2 websockets. One to communicate with Resy, subscribe to venue-81702, and listen for changes, then save reservations in the database. And one that is triggered by reservations being saved, to change a frontend.**
+   You can see more detailed notes about potential live strategies on the code at:
    src/routes/reservations/index.ts:17
    src/routes/reservations/index.ts:37
-2. As I imagine this, this is a screen in the reception of a restaurant that updates the reservations of the day live. As such, there isn't any need to live-update reservations from past dates. Although the data is stored in the Database in such a way that it could easily be scaled up to include past or future days.
-3. I'm using UTC on both front-end and backend.
-4. I'm using el-GR date format because
-5. I figured It's ok to use the API keys in an .env file and don't deal with authentication. As far as I've seen, they don't expire. I have provided an .env in my submission email. Please include it in the root folder of the project before running it. If this is an incorrect assumption and you cannot get this app running, PLEASE LET ME KNOW!
+2. I am assuming that the venue-81702-YYYYMMDD is the right subscription that will update for reservations, even though I didn't get any updates in the past ~1.5 hours that I have this running in the background.
+3. There's a very basic monitoring of the day. If the day changes, the websocket should subscribe to the next day.
+4. As I imagine this, this is a screen in the reception of a restaurant that updates the reservations of the day live. As such, there isn't any need to live-update reservations from past dates. Although the data is stored in the Database in such a way that it could easily be scaled up to include past or future days.
+5. I'm using UTC on both front-end and backend.
+6. I'm using el-GR date format
+7. I figured It's ok to use the API keys in an .env file and don't deal with authentication. As far as I've seen, they don't expire. I have provided an .env in my submission email. Please include it in the root folder of the project before running it. If this is an incorrect assumption and you cannot get this app running, PLEASE LET ME KNOW!
 
 ## Instructions
 
